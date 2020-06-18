@@ -111,6 +111,43 @@ impl EventHandler for Handler {
                             if let Err(why) = incorrect_msg { println!("Error sending incorrect usage message: {:?}", why); }
                         }
                     }
+                },
+                "ban" => {
+                    if let Some(member_name) = command.get(1) {
+                        if let Some(_) = command.get(2) {
+                            if let Ok(_) = msg.author.has_role(&ctx, GUILD_ID, MOD_ROLE_ID) {
+                                if member_name.starts_with("<@") && member_name.ends_with('>') {
+                                    let end = member_name.find(">").unwrap_or(member_name.len());
+                                    let member_id: u64 = member_name[3..end].parse().unwrap();
+                                    let member = &msg.guild_id.unwrap().member(&ctx, member_id);
+                                    let full_reason = &command[2..].join(" ");
+
+                                    match member {
+                                        Ok(m) => {
+                                            let tag = m.distinct();
+                                            let before_msg = m.user.read().direct_message(&ctx, |m| {
+                                                m.content(format!("You were banned by @{} for reason: `{}`", msg.author.tag(), full_reason))
+                                            });
+                                            if let Err(why) = before_msg { println!("Error sending before moderation message: {:?}", why); }
+
+                                            match m.to_owned().ban(&ctx, &0) {
+                                                Ok(_) => {
+                                                    log_moderation(msg.author, ctx, msg.content, tag, full_reason.to_owned());
+                                                },
+                                                Err(why) => println!("Error banning user: {:?}", why),
+                                            };
+                                        },
+                                        Err(why) => println!("Error parsing user: {:?}", why),
+                                    };
+                                }
+                            }
+                        } else {
+                            let incorrect_msg = &msg.author.direct_message(&ctx, |m| {
+                                m.content(format!("Please specify a reason for {}.", msg.content))
+                            });
+                            if let Err(why) = incorrect_msg { println!("Error sending incorrect usage message: {:?}", why); }
+                        }
+                    }
                 }
                 _ => (),
             }
