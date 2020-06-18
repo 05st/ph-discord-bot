@@ -3,8 +3,12 @@ use serenity::{
     client::Client,
     model::{
         channel::Message,
-        id::GuildId,
+        id::{
+            GuildId,
+            ChannelId,
+        },
         guild::Member,
+        user::User,
         gateway::{
             Ready,
             Activity,
@@ -18,6 +22,27 @@ use serenity::{
 use chrono::Utc;
 
 const PREFIX: &str = ">";
+const GUILD_ID: u64 = 722938150954991626;
+const MOD_ROLE_ID: u64 = 722942925297680384;
+const LOG_CHANNEL_ID: u64 = 723287482459750501;
+
+fn log_moderation(author: User, ctx: Context, command: String, nick: String) {
+    let channels = GuildId(GUILD_ID).channels(&ctx);
+    if let Ok(guild_channels) = channels {
+        let message = guild_channels.get(&ChannelId(LOG_CHANNEL_ID)).unwrap().send_message(&ctx, |m| {
+            m.embed(|e| {
+                e.title("Moderation");
+                e.description(format!("@{} has performed a moderation on `{}`.\n`{}`", author.tag(), nick, command));
+                e.footer(|f| {
+                    f.text(format!("{}", Utc::now()))
+                })
+            })
+        });
+        if let Err(why) = message { println!("Error logging moderation: {:?}", why); }
+    } else if let Err(why) = channels {
+        println!("Error: {:?}", why);
+    }
+}
 
 struct Handler;
 impl EventHandler for Handler {
@@ -43,11 +68,36 @@ impl EventHandler for Handler {
                     let message = msg.author.direct_message(&ctx, |m| {
                         m.embed(|e| {
                             e.title("Help");
-                            e.description("**>help** | Display this bot's commands.\n**>rules** | Display the server's rules.")
+                            e.description("**>help** | Display commands.\n**>rules** | Display rules.\n\n**__Staff__**\n**>kick** | Kicks user.\n**>ban** | Bans user.")
                         })
                     });
                     if let Err(why) = message { println!("Error sending message: {:?}", why); }
                     if let Err(why) = msg.delete(ctx.http) { println!("Error deleting message: {:?}", why); }
+                },
+                
+                "kick" => {
+                    if let Ok(_) = msg.author.has_role(&ctx, GUILD_ID, MOD_ROLE_ID) {
+                        let member_name: String = command[1].clone();
+
+                        if member_name.starts_with("<@") && member_name.ends_with('>') {
+                            let end = member_name.find(">").unwrap_or(member_name.len());
+                            let member_id: u64 = member_name[3..end].parse().unwrap();
+                            let member = &msg.guild_id.unwrap().member(&ctx, member_id);
+
+                            match member {
+                                Ok(m) => {
+                                    let nick = m.display_name().into_owned();
+                                    match m.to_owned().kick(&ctx) {
+                                        Ok(_) => {
+                                            log_moderation(msg.author, ctx, msg.content, nick);
+                                        },
+                                        Err(why) => println!("Error kicking user: {:?}", why),
+                                    };
+                                },
+                                Err(why) => println!("Error parsing user: {:?}", why),
+                            };
+                        }
+                    }
                 }
                 _ => (),
             }
@@ -56,7 +106,7 @@ impl EventHandler for Handler {
 
     fn guild_member_addition(&self, ctx: Context, _guild_id: GuildId, member: Member) {
         let msg = member.user.read().direct_message(&ctx, |m| {
-            m.content("Welcome to the Programming Hub discord server!\nPlease make sure to read over the rules by typing **>rules**.")
+            m.content("Welcome to the **Programming Hub** discord server!\nPlease make sure to read over the rules by typing **>rules**.")
         });
         if let Err(why) = msg { println!("Error sending message: {:?}", why); }
     }
