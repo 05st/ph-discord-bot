@@ -26,13 +26,19 @@ const GUILD_ID: u64 = 722938150954991626;
 const MOD_ROLE_ID: u64 = 722942925297680384;
 const LOG_CHANNEL_ID: u64 = 723287482459750501;
 
-fn log_moderation(author: User, ctx: Context, command: String, tag: String, reason: String) {
+#[derive(Debug)]
+enum ModerationType {
+    Kick,
+    Ban,
+}
+
+fn log_moderation(author: User, ctx: Context, moderation_type: ModerationType, tag: String, reason: String) {
     let channels = GuildId(GUILD_ID).channels(&ctx);
     if let Ok(guild_channels) = channels {
         let message = guild_channels.get(&ChannelId(LOG_CHANNEL_ID)).unwrap().send_message(&ctx, |m| {
             m.embed(|e| {
                 e.title("Moderation");
-                e.description(format!("`@{}` has performed a moderation on `{}`.\n{}\n**Reason: **`{}`", author.tag(), tag, command, reason));
+                e.description(format!("`{}` has performed a moderation on `{}`.\n**Type: **`{:?}`\n**Reason: **`{}`", author.tag(), tag, moderation_type, reason));
                 e.footer(|f| {
                     f.text(format!("{}", Utc::now()))
                 })
@@ -90,13 +96,13 @@ impl EventHandler for Handler {
                                             Ok(m) => {
                                                 let tag = m.distinct();
                                                 let before_msg = m.user.read().direct_message(&ctx, |m| {
-                                                    m.content(format!("You were kicked by @{} for reason: `{}`", msg.author.tag(), full_reason))
+                                                    m.content(format!("You were kicked by `{}` for reason: `{}`", msg.author.tag(), full_reason))
                                                 });
                                                 if let Err(why) = before_msg { println!("Error sending before moderation message: {:?}", why); }
 
                                                 match m.to_owned().kick(&ctx) {
                                                     Ok(_) => {
-                                                        log_moderation(msg.author, ctx, msg.content, tag, full_reason.to_owned());
+                                                        log_moderation(msg.author, ctx, ModerationType::Kick, tag, full_reason.to_owned());
                                                     },
                                                     Err(why) => println!("Error kicking user: {:?}", why),
                                                 };
@@ -129,13 +135,13 @@ impl EventHandler for Handler {
                                             Ok(m) => {
                                                 let tag = m.distinct();
                                                 let before_msg = m.user.read().direct_message(&ctx, |m| {
-                                                    m.content(format!("You were banned by @{} for reason: `{}`", msg.author.tag(), full_reason))
+                                                    m.content(format!("You were banned by `{}` for reason: `{}`", msg.author.tag(), full_reason))
                                                 });
                                                 if let Err(why) = before_msg { println!("Error sending before moderation message: {:?}", why); }
 
                                                 match m.to_owned().ban(&ctx, &0) {
                                                     Ok(_) => {
-                                                        log_moderation(msg.author, ctx, msg.content, tag, full_reason.to_owned());
+                                                        log_moderation(msg.author, ctx, ModerationType::Ban, tag, full_reason.to_owned());
                                                     },
                                                     Err(why) => println!("Error banning user: {:?}", why),
                                                 };
