@@ -76,7 +76,23 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     let token = env::var("PH_DISCORD_TOKEN").expect("Failed to get token from environment variable.");
-    let mut client = Client::new(token).event_handler(Handler).await;
 
-    let framework = StandardFramework::new();
+    let framework = StandardFramework::new()
+        .configure(|c| c
+            .prefix(PREFIX)
+            .with_whitespace(true)
+            .case_insensitivity(true)
+        )
+        .group(&GENERAL_GROUP)
+        .group(&MODERATION_GROUP);
+
+    let mut client = Client::new(token)
+        .event_handler(Handler)
+        .framework(framework)
+        .await
+        .expect("Failed to create client.");
+    
+    if let Err(why) = client.start().await {
+        println!("Error starting client: {:?}", why);
+    }
 }
