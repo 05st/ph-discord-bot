@@ -68,7 +68,7 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        ctx.set_activity(Activity::listening(format!("{}help", PREFIX)));
+        ctx.set_activity(Activity::listening(format!("{}help", PREFIX).as_str())).await;
     }
 }
 
@@ -80,7 +80,6 @@ async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c
             .prefix(PREFIX)
-            .with_whitespace(true)
             .case_insensitivity(true)
         )
         .group(&GENERAL_GROUP)
