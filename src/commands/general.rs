@@ -3,11 +3,8 @@ use serenity::{
     prelude::Context,
     model::{
         channel::Message,
-        Permissions,
     },
-    client::bridge::gateway::ShardId,
     framework::standard::{
-        Args,
         CommandResult,
         macros::command,
     },

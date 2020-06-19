@@ -5,7 +5,6 @@ use serenity::{
         channel::Message,
         guild::Member,
         id::ChannelId,
-        Permissions,
     },
     framework::standard::{
         Args,

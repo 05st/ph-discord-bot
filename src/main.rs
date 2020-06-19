@@ -9,40 +9,17 @@ use moderation::*;
 use std::env;
 use serenity::{
     async_trait,
-    client::{
-        bridge::{
-            gateway::{
-                GatewayIntents,
-                ShardManager,
-            },
-        },
-        Client,
-    },
+    client::Client,
     framework::standard::{
-        Args,
-        CommandOptions,
-        DispatchError,
-        HelpBehaviour,
         macros::{
-            command,
             group,
         },
         StandardFramework,
     },
     model::{
-        channel::{
-            Message,
-            Reaction,
-            ReactionType,
-        },
         gateway::{
             Activity,
             Ready,
-        },
-        id::{
-            GuildId,
-            ChannelId,
-            UserId,
         },
     },
     prelude::{
