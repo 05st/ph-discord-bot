@@ -56,7 +56,7 @@ const PREFIX: &str = ">";
 
 // Frameworks
 #[group("General")]
-#[commands(help)]
+#[commands(help, rules)]
 struct General;
 
 #[group("Moderation")]
@@ -67,7 +67,7 @@ struct Moderation;
 struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, ctx: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, _ready: Ready) {
         ctx.set_activity(Activity::listening(format!("{}help", PREFIX).as_str())).await;
     }
 }
