@@ -69,8 +69,9 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             Ok(m) => {
                 if let Err(why) = m.kick_with_reason(ctx, reason).await {
                     println!("Failed to kick member: {:?}", why);
+                } else {
+                    log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Kick, reason.to_string()).await;
                 }
-                log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Kick, reason.to_string()).await;
             },
             Err(why) => println!("Failed to parse member: {:?}", why),
         }
@@ -88,8 +89,9 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             Ok(m) => {
                 if let Err(why) = m.ban_with_reason(ctx, 0, reason).await {
                     println!("Failed to ban member: {:?}", why);
+                } else {
+                    log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Ban, reason.to_string()).await;
                 }
-                log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Ban, reason.to_string()).await;
             },
             Err(why) => println!("Failed to parse member: {:?}", why),
         }
