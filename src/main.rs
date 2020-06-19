@@ -1,4 +1,11 @@
-// Imports
+#[path = "commands/general.rs"]
+mod general;
+use general::*;
+
+#[path = "commands/moderation.rs"]
+mod moderation;
+use moderation::*;
+
 use std::env;
 use serenity::{
     async_trait,
@@ -16,6 +23,10 @@ use serenity::{
         CommandOptions,
         DispatchError,
         HelpBehaviour,
+        macros::{
+            command,
+            group,
+        },
         StandardFramework,
     },
     model::{
@@ -45,11 +56,11 @@ const PREFIX: &str = ">";
 
 // Frameworks
 #[group("General")]
-#[commands()]
+#[commands(help)]
 struct General;
 
 #[group("Moderation")]
-#[commands()]
+#[commands(kick)]
 struct Moderation;
 
 // EventHandler
