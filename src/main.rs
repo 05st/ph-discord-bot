@@ -60,7 +60,7 @@ const PREFIX: &str = ">";
 struct General;
 
 #[group("Moderation")]
-#[commands(kick)]
+#[commands(kick, ban)]
 struct Moderation;
 
 // EventHandler

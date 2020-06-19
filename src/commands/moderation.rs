@@ -64,17 +64,35 @@ async fn log_moderation(ctx: &Context, msg: &Message, moderator_name: String, vi
 #[min_args(2)]
 async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let member = parse_member(&ctx, &msg, args.single_quoted::<String>()?).await;
-    let reason = args.remains().unwrap();
-
-    match member {
-        Ok(m) => {
-            if let Err(why) = m.kick_with_reason(ctx, reason).await {
-                println!("Failed to kick member: {:?}", why);
-            }
-            log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Kick, reason.to_string()).await;
-        },
-        Err(why) => println!("Failed to parse member: {:?}", why),
+    if let Some(reason) = args.remains() {
+        match member {
+            Ok(m) => {
+                if let Err(why) = m.kick_with_reason(ctx, reason).await {
+                    println!("Failed to kick member: {:?}", why);
+                }
+                log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Kick, reason.to_string()).await;
+            },
+            Err(why) => println!("Failed to parse member: {:?}", why),
+        }
     }
+    Ok(())
+}
 
+#[command]
+#[required_permissions(BAN_MEMBERS)]
+#[min_args(2)]
+async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let member = parse_member(&ctx, &msg, args.single_quoted::<String>()?).await;
+    if let Some(reason) = args.remains() {
+        match member {
+            Ok(m) => {
+                if let Err(why) = m.ban_with_reason(ctx, 0, reason).await {
+                    println!("Failed to ban member: {:?}", why);
+                }
+                log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Ban, reason.to_string()).await;
+            },
+            Err(why) => println!("Failed to parse member: {:?}", why),
+        }
+    }
     Ok(())
 }
