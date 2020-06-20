@@ -73,7 +73,7 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 if let Err(why) = m.kick_with_reason(ctx, reason).await {
                     println!("Failed to kick member: {:?}", why);
                 } else {
-                    log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Kick, reason.to_string()).await;
+                    log_moderation(&ctx, &msg, format!("{} ({})", msg.author, msg.author.id), format!("{} ({})", m.user, m.user.id), ModerationType::Kick, reason.to_string()).await;
                 }
             },
             Err(why) => println!("Failed to parse member: {:?}", why),
@@ -93,7 +93,7 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 if let Err(why) = m.ban_with_reason(ctx, 0, reason).await {
                     println!("Failed to ban member: {:?}", why);
                 } else {
-                    log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Ban, reason.to_string()).await;
+                    log_moderation(&ctx, &msg, format!("{} ({})", msg.author, msg.author.id), format!("{}#{} ({})", m.user.name, m.user.discriminator, m.user.id), ModerationType::Ban, reason.to_string()).await;
                 }
             },
             Err(why) => println!("Failed to parse member: {:?}", why),
@@ -113,7 +113,7 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let messages_ids = messages.iter().map(|m| m.id).collect::<Vec<MessageId>>();
         channel.delete_messages(ctx, messages_ids).await?;
         msg.delete(ctx).await?;
-        log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{} Messages ({})", num, channel), ModerationType::Clear, String::new()).await;
+        log_moderation(&ctx, &msg, format!("{} ({})", msg.author, msg.author.id), format!("{} Messages ({})", num, channel), ModerationType::Clear, String::new()).await;
     }
     Ok(())
 }
