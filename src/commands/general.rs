@@ -16,10 +16,10 @@ async fn help(ctx: &Context, msg: &Message) -> CommandResult {
     msg.author.direct_message(ctx, |m| {
         m.embed(|e| {
             e.title("Help");
-            e.description("**>help** | Display commands.\n**>rules** | Display rules.\n\n**__Staff__**\n**>kick <user> <reason>** | Kicks user.\n**>ban <user> <reason>** | Bans user.")
+            e.description("**>help** | Display commands.\n**>rules** | Display rules.\n\n**__Staff__**\n**>kick <user> <reason>** | Kicks <user>.\n**>ban <user> <reason>** | Bans <user>.\n**>clear <num>** | Clears <num> messages in a channel.")
         })
     }).await?;
-    msg.delete(&ctx.http).await?;
+    msg.delete(ctx).await?;
     Ok(())
 }
 
@@ -34,6 +34,6 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
             })
         })
     }).await?;
-    msg.delete(&ctx.http).await?;
+    msg.delete(ctx).await?;
     Ok(())
 }

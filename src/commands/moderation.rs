@@ -4,7 +4,10 @@ use serenity::{
     model::{
         channel::Message,
         guild::Member,
-        id::ChannelId,
+        id::{
+            ChannelId,
+            MessageId,
+        },
     },
     framework::standard::{
         Args,
@@ -21,6 +24,7 @@ const LOG_CHANNEL_ID: u64 = 723287482459750501; // Where moderation logs get sen
 enum ModerationType {
     Kick,
     Ban,
+    Clear,
 }
 
 async fn parse_member(ctx: &Context, msg: &Message, member_name: String) -> Result<Member, String> {
@@ -60,7 +64,7 @@ async fn log_moderation(ctx: &Context, msg: &Message, moderator_name: String, vi
 
 #[command]
 #[required_permissions(KICK_MEMBERS)]
-#[min_args(2)]
+#[num_args(2)]
 async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let member = parse_member(&ctx, &msg, args.single_quoted::<String>()?).await;
     if let Some(reason) = args.remains() {
@@ -80,7 +84,7 @@ async fn kick(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[command]
 #[required_permissions(BAN_MEMBERS)]
-#[min_args(2)]
+#[num_args(2)]
 async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let member = parse_member(&ctx, &msg, args.single_quoted::<String>()?).await;
     if let Some(reason) = args.remains() {
@@ -94,6 +98,22 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             },
             Err(why) => println!("Failed to parse member: {:?}", why),
         }
+    }
+    Ok(())
+}
+
+#[command]
+#[aliases("del", "delete", "purge")]
+#[required_permissions(MANAGE_MESSAGES)]
+#[num_args(1)]
+async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    if let Ok(num) = args.single::<u64>() {
+        let channel = &msg.channel(ctx).await.unwrap().guild().unwrap();
+        let messages = &channel.messages(ctx, |r| r.before(&msg.id).limit(num)).await?;
+        let messages_ids = messages.iter().map(|m| m.id).collect::<Vec<MessageId>>();
+        channel.delete_messages(ctx, messages_ids).await?;
+        msg.delete(ctx).await?;
+        log_moderation(&ctx, &msg, format!("{}#{} ({})", msg.author.name, msg.author.discriminator, msg.author.id), format!("{} Messages ({})", num, channel), ModerationType::Clear, String::new()).await;
     }
     Ok(())
 }
