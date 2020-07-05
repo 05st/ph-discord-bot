@@ -3,6 +3,7 @@ use serenity::{
     prelude::Context,
     model::{
         channel::Message,
+        id::RoleId,
     },
     framework::standard::{
         Args,
@@ -10,6 +11,8 @@ use serenity::{
         macros::command,
     },
 };
+
+const TOGGLE_ROLES: [RoleId; 1] = [RoleId(729152819742900276)];
 
 #[command]
 #[aliases("commands", "cmds")]
@@ -45,21 +48,17 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 async fn toggle(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let role_name = args.rest();
 
-    println!("ok starting");
     if let Some(guild) = msg.guild(&ctx).await {
-        println!("ok found guild");
         if let Ok(mut member) = guild.member(ctx, msg.author.id).await {
-            println!("ok found member");
             for (id, role) in &guild.roles {
-                println!("ok looping through");
                 if role.name == role_name {
-                    println!("ok found role");
-                    if let Ok(does) = msg.author.has_role(&ctx, guild.id, role).await {
-                        println!("ok(does)");
-                        if does {
-                            member.remove_role(&ctx, id).await?;
-                        } else {
-                            member.add_role(&ctx, id).await?;
+                    if TOGGLE_ROLES.contains(id) {
+                        if let Ok(does) = msg.author.has_role(&ctx, guild.id, role).await {
+                            if does {
+                                member.remove_role(&ctx, id).await?;
+                            } else {
+                                member.add_role(&ctx, id).await?;
+                            }
                         }
                     }
                 }
