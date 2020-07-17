@@ -37,7 +37,7 @@ use serenity::{
 
 // Constants
 const PREFIX: &str = ">";
-const DEFAULT_ROLES: [RoleId; 1] = [RoleId(729152819742900276)];
+const DEFAULT_ROLES: [RoleId; 0] = [];
 
 // Frameworks
 #[group("General")]
